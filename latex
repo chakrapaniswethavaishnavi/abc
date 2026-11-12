@@ -1,0 +1,561 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,graphicx,float,booktabs,array,longtable,setspace,titlesec,xcolor,hyperref,caption,enumitem,fancyhdr}
+\onehalfspacing
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue,pdftitle={GUI-Based Sonar Ship-Wake Processing and Deep-Learning Prediction},pdfauthor={Chakrapani Swetha Vaishnavi}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Sonar Ship-Wake Detection}
+\fancyhead[R]{Project Report}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{15pt}
+
+% Add the named image files beside this .tex file when screenshots are ready.
+% Until then, framed placeholders are displayed automatically.
+\newcommand{\projectfigure}[4][0.88\textwidth]{%
+\begin{figure}[H]\centering
+\IfFileExists{#2}{\includegraphics[width=#1,keepaspectratio]{#2}}%
+{\fbox{\parbox[c][4.5cm][c]{0.82\textwidth}{\centering
+\textbf{IMAGE PLACEHOLDER}\\[6pt]\texttt{#2}\\[6pt]#3}}}
+\caption{#4}
+\end{figure}}
+\begin{document}
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\LARGE\bfseries SONAR BASED TARGET DETECTION USING MACHINE LEARNING\par}
+\vspace{1.2cm}
+{\Large\bfseries PROJECT REPORT\par}
+\vspace{1.4cm}
+{\large Submitted by\par}
+\vspace{0.3cm}
+{\Large Chakrapani Swetha Vaishnavi\par}
+\vspace{0.3cm}
+{\large Intern , Homing Department\\ \textbf{Naval Science \& Technological Laboratory (NSTL),DRDO} \\ \textbf{Visakhapatnam}\par}
+\vspace{1cm}
+\includegraphics[0.32\textwidth]{organization_logo.png}\par
+\vfill
+Under the guidance of \\ \textbf{Mr.Himanshu Sekhar Palak Sir (Sc - F)}
+\vspace{1cm}
+\\
+Homing Department.\\
+\textbf{Naval Science \& Technological Laboratory (NSTL),DRDO} \\ \textbf{Visakhapatnam (A.P)-532007}\par}
+\vspace{0.8cm}
+22nd May 2026-20th November 2026
+\end{titlepage}
+
+\pagenumbering{roman}
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+I, {Chakrapani Swetha Vaishnavi}, declare that the work presented in this report entitled
+\textbf{"SONAR BASED TARGET DETECTION USING MACHINE LEARNING"} has been carried out by me during my internship at Homing, Naval Science \& Technological Laboratory (NSTL),DRDO,Visakhapatnam.\\
+This work reflects my own efforts and understanding,developed under the guidance and support of \textbf{Mr.Himanshu Sekhar Palak (Sc - F),HOMING Dept.,NSTL,DRDO.} The report is intended to describe
+the design, implementation approach, tools, processing workflow, and
+model-development activities associated with the project. I have made efforts
+to distinguish implemented functionality from proposed enhancements and to
+include only verified experimental results.
+\vspace*{2cm} % Adjust vertical spacing from the top as needed
+
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+    \raggedright
+    CH.Swetha Vaishnavi \\[6pt]
+    Intern \\[6pt]
+    NSTL, DRDO \\[16pt]
+    Date: \rule{3.5cm}{0.4pt} \\[6pt]
+    Place: Visakhapatnam
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \textbf{Project Guide:} \\[6pt]
+    \textbf{Himanshu Sekhar Palak} \\[6pt]
+    \textbf{(Scientist-F), Homing Dept}
+\end{minipage}
+
+
+\chapter*{Acknowledgement}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+I express my sincere gratitude to my project guide, \textbf{Mr.Himanshu Sekhar
+Palak Sir}, Scientist `F', Homing Dept, NSTL-DRDO for his guidance, suggestions, and technical support throughout the
+development of this project. His feedback helped me understand the sonar
+data-processing requirements and organise the work into rule-based processing
+and deep-learning-based prediction stages.
+
+I am grateful to Mrs. M. Vijaya Mam, OS Scientist-H, Technical Director, SPG Division, Homing, DRDO NSTL, for her
+encouragement, valuable direction, and support. I also acknowledge the
+facilities and opportunity provided by the Naval Science and
+Technological Laboratory (NSTL), DRDO. Finally, I thank everyone who provided
+assistance and encouragement during the development, testing, and
+documentation of this project.
+\vspace{1.5cm}
+\begin{flushright}
+    Chakrapani Swetha Vaishnavi
+\end{flushright}
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+Active sonar systems produce signal data that require organised processing
+and interpretation. This project focuses on developing a Windows desktop
+application for channel-wise ship-wake data processing and a separate
+deep-learning workflow for predicting wake labels from sonar signal data.
+
+The project contains two application stages. The first is a rule-based
+signal-processing GUI developed using Python and PySide6. It accepts Beam PRI
+data and corresponding PRI Analysis data, associates the Beam file with its
+PRI information, applies the specified labelling rules, and generates a
+channel-wise labelled output file. The processing workflow identifies the
+required I-channel values and excludes Q-channel values where required by the
+data specification.
+
+The second stage concerns supervised deep-learning model development. Beam
+signal data are associated with channel labels derived from the Wake\_Detection
+information, subject to verification of the channel-to-bit mapping. In the
+EfficientNet-based workflow, each channel signal is represented as a
+time-frequency spectrogram. The spectrogram is prepared as an image input and
+supplied to an EfficientNet-B0-based binary classification model implemented
+with TensorFlow and Keras. The trained model is saved and can subsequently be
+loaded by a prediction application to process new Beam data and produce
+channel-wise YES/NO predictions.
+
+The project brings together CSV file handling, PRI matching, signal
+preprocessing, rule-based labelling, spectrogram generation, deep-learning
+model training, model persistence, and desktop application deployment.
+Model performance must be established using an independent test set containing
+recordings not used during training; training performance alone is not treated
+as evidence of generalisation.
+
+\noindent\textbf{Keywords:} Active sonar, ship-wake detection, Beam PRI,
+I/Q signal, signal processing, spectrogram, EfficientNet-B0, TensorFlow,
+Keras, PySide6, supervised learning.
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+\section{Background}
+Sonar is used to observe and analyse underwater acoustic information. Active
+sonar systems transmit acoustic pulses and analyse received responses. The
+resulting data may be stored in structured files and processed to identify
+signal characteristics associated with a target or wake.
+
+This project addresses the need for a convenient software workflow to process
+Beam PRI data, associate it with PRI Analysis information, create channel-wise
+labels using specified rules, and investigate a learned prediction approach
+using machine learning.
+
+\section{Problem Statement}
+Processing sonar datasets manually can be time-consuming and can make
+consistent file handling difficult. A software tool is required to accept the
+relevant data files, associate records using PRI information, apply the
+required labelling logic, and save organised outputs. In addition, a trained
+model can be investigated as a complementary approach for predicting
+channel-wise wake labels from signal patterns.
+
+\section{Objectives}
+\begin{itemize}[leftmargin=*]
+\item Develop a Windows desktop GUI for Beam and PRI Analysis file selection.
+\item Match each Beam PRI file with its corresponding PRI record.
+\item Extract the required I-channel signal values and handle Q-channel
+columns according to the data format.
+\item Apply the specified wake-labelling rules and generate labelled outputs.
+\item Prepare channel-level signal examples and corresponding labels for
+supervised learning.
+\item Convert signal sequences into spectrogram representations for the
+EfficientNet-based workflow.
+\item Train, save, load, and use a deep-learning model for channel-wise
+prediction.
+\item Provide a desktop prediction workflow that can be packaged for
+compatible Windows systems.
+\end{itemize}
+
+\section{Project Scope}
+The project covers CSV-based data processing, PRI matching, channel
+extraction, rule-based labelling, spectrogram preparation, EfficientNet-B0
+model development, prediction, and Windows GUI deployment. The reliability
+of the final prediction system depends on correct labels, consistent
+preprocessing, suitable training data, and independent evaluation.
+
+\chapter{Overview of the Proposed System}
+\section{System Components}
+The complete workflow is divided into three components:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Rule-based processing GUI:} It accepts Beam and PRI Analysis files
+and generates labelled channel output.
+\item \textbf{Training pipeline:} It prepares labelled signal examples, generates
+spectrograms, trains EfficientNet-B0, and saves the model.
+\item \textbf{AI prediction GUI:}It loads the saved model, preprocesses new Beam
+data consistently, and displays or saves predicted labels.
+\end{enumerate}
+
+\projectfigure[1.0\textwidth]{system_architecture.png}{Insert a block diagram...}{Overall architecture of the sonar target-wake processing system}
+
+\section{End-to-End Workflow}
+The input data are first selected through the rule-based GUI. The application
+identifies the PRI associated with the selected Beam file and obtains the
+relevant wake information from the PRI Analysis file. The specified
+processing logic is applied and a labelled output is generated.
+
+For model development, Beam signal data and corresponding labels are prepared
+as supervised-learning examples. The training pipeline converts each channel
+signal into a spectrogram representation and trains the classification model.
+The saved model is then loaded by the prediction GUI to process new Beam data.
+
+\chapter{Rule-Based Wake Signal Processing GUI}
+\section{Purpose}
+The first GUI provides an interface for processing the input datasets using
+predefined rules. It reduces repeated manual file handling and organises the
+generated channel-wise labels into a structured output.
+
+\section{Input Data}
+\subsection{Beam PRI CSV}
+The Beam file contains signal observations arranged in channel columns. The
+data format may represent each channel using an I/Q pair. The processing
+pipeline identifies the I-channel values and excludes the corresponding
+Q-channel values when the selected processing rule requires I-only input.
+
+\subsection{PRI Analysis CSV}
+The PRI Analysis file contains PRI-related information and the
+Wake Detection field, along with other analysis fields. The PRI number is
+used to associate a Beam file with the corresponding analysis record.
+
+\section{PRI Matching and Label Generation}
+The application obtains the PRI identifier from the Beam filename or the
+selected file's metadata, according to the dataset naming convention. It
+then locates the corresponding PRI record in the Analysis CSV. The wake
+label is generated using the agreed Wake Detection interpretation.
+
+If Wake Detection is encoded as a hexadecimal bit mask, the exact mapping
+between bit positions and channel numbers must be verified against the
+dataset specification or confirmed labelled examples. A bit order must not
+be assumed without verification.
+
+\section{Output}
+The rule-based GUI saves a labelled PRI output file. The output is intended
+to retain the channel-wise organisation required by the project. The first
+valid observation of each I channel must be preserved during reading and
+transformation. CSV header handling must be configured according to whether
+the source file contains a header row.
+
+\projectfigure{rule_gui.png}{Insert a full-window screenshot of the rule-based
+PySide6 GUI, showing its title, input selectors, processing controls, and
+output area.}{Rule-based Wake Signal Processing GUI}
+
+\projectfigure{rule_output.png}{Insert a screenshot of the generated
+Wake\_Labeled\_PRI output opened in a spreadsheet viewer. Ensure channel
+names and first values are readable.}{Example of rule-generated labelled PRI output}
+
+\chapter{Dataset Preparation and Signal Preprocessing}
+\section{Data Organisation}
+The training data are organised into Beam PRI CSV files and the corresponding
+PRI Analysis CSV file or files. The Beam data provide the signal input, while
+the analysis information provides the supervisory labels used by the
+training pipeline.
+
+\section{I-Channel Extraction}
+Where Beam columns are arranged as alternating I/Q pairs, the I-channel
+columns are selected by their positions, while Q-channel columns are
+excluded. Where reliable column names are available, the implementation may
+use those names instead. The extraction logic must match the actual CSV
+structure.
+
+Special care is taken not to lose the first observation. For a headerless
+CSV, the file must be read without treating the first numerical row as a
+column header. Missing-value handling should remove only invalid entries and
+must not remove a valid first sample.
+
+\section{Label Preparation}
+The Wake\_Detection field is converted into channel-wise binary targets
+according to the verified label specification:
+\[
+\text{YES} \rightarrow 1,\qquad \text{NO} \rightarrow 0.
+\]
+Correct label generation is essential because supervised learning uses
+these values as the expected targets.
+
+\section{Spectrogram Generation}
+A spectrogram represents how signal energy varies with time and frequency.
+It is calculated from a channel signal using a short-time Fourier
+transform-based method. The resulting power values can be converted to a
+logarithmic scale and normalised before being resized to the model input
+dimensions.
+
+The same preprocessing steps and settings must be used during both training
+and inference. Changes to signal scaling, spectrogram parameters, image
+dimensions, or channel ordering can affect model predictions.
+
+\projectfigure{spectrogram_example.png}{Insert a spectrogram image generated
+from one representative I-channel signal. Add time and frequency axis labels
+if known.}{Example time-frequency spectrogram representation}
+
+\chapter{EfficientNet-Based Model Training}
+\section{Supervised Learning Approach}
+The model-training stage uses supervised learning. Each training example
+consists of a preprocessed channel signal representation and its corresponding
+known binary label. The model learns a mapping between spectrogram patterns
+and the channel label.
+
+\section{Why EfficientNet-B0}
+EfficientNet-B0 is a convolutional neural network architecture designed to
+extract features from image inputs with a balance between model capacity and
+computational cost. Since signal preprocessing produces spectrogram images,
+EfficientNet-B0 is used as the image feature-extraction backbone.
+
+The model configuration must be described accurately. If the network is
+created with \texttt{weights=None}, it is trained from randomly initialised
+weights rather than ImageNet pretrained weights.
+
+\section{Classification Head}
+The original classification head of EfficientNet is omitted when it is used
+as a feature extractor. A task-specific classification head is added. In the
+binary channel-classification workflow, the head produces one sigmoid score
+for a channel example:
+\[
+\sigma(z)=\frac{1}{1+e^{-z}}.
+\]
+A decision threshold converts the score into a binary label. A threshold
+such as 0.5 is a starting configuration and should be reviewed using
+validation data.
+
+\section{Loss Function and Optimiser}
+Binary cross-entropy is suitable for a binary classification output. The
+optimiser updates the trainable model parameters to reduce the loss during
+training. Learning rate, batch size, number of epochs, and other
+hyperparameters are configuration choices and should be documented from
+the final training run.
+
+\section{Training, Validation, and Testing}
+The dataset should be divided into training, validation, and test groups.
+When multiple PRI files originate from the same recording or acquisition,
+related files should be kept in the same split where possible. This reduces
+the risk of information leakage between training and evaluation data.
+
+The validation set is used for model selection and threshold tuning. The
+test set is reserved for final evaluation and should not be used to tune
+the model. Reported performance should include precision, recall, F1-score,
+and a confusion matrix in addition to accuracy.
+
+\section{Class Imbalance}
+If the number of YES and NO labels differs substantially, accuracy alone
+may be misleading. Class distribution should be examined, and class
+weighting or other suitable imbalance-handling methods may be considered.
+Performance should be inspected separately for each channel and class.
+
+\section{Saving the Trained Model}
+After training and selection, the model is saved in Keras format, for
+example \texttt{wake\_efficientnet.keras}. The saved model is loaded later
+by the prediction application. The preprocessing configuration, input
+dimensions, channel ordering, model version, and decision threshold should
+also be retained so inference matches training.
+
+\projectfigure{training_notebook.png}{Insert a screenshot of the notebook
+showing imports, preprocessing, model definition, compilation, or training.}
+{Model training implementation in the notebook}
+
+\projectfigure{training_curves.png}{Insert actual training and validation
+loss or metric plots from the final validated training run. Do not insert
+illustrative or fabricated plots.}{Training and validation curves}
+
+\projectfigure{evaluation_results.png}{Insert the actual confusion matrix
+and evaluation metrics from the independent test set, once available.}
+{Independent model evaluation results}
+
+\chapter{AI-Based Wake Prediction GUI}
+\section{Purpose}
+The second GUI is intended for inference using the saved model. It does not
+need to retrain the network whenever the application is opened. Instead,
+it loads the saved model and applies the same preprocessing pipeline to
+new Beam data.
+
+\section{Prediction Workflow}
+\begin{enumerate}[leftmargin=*]
+\item Select a new Beam PRI CSV file.
+\item Select the associated PRI Analysis file if required by the
+application's PRI validation workflow.
+\item Select the destination for the prediction output.
+\item Load the saved Keras model.
+\item Extract I-channel signal values using the same rules applied during
+training.
+\item Generate spectrogram inputs using the same parameters and
+normalisation settings as training.
+\item Run model inference and obtain a score for each channel.
+\item Apply the configured threshold to obtain YES/NO predictions.
+\item Display and save the channel-wise prediction results.
+\end{enumerate}
+
+The prediction labels must be produced by the trained model. The
+Wake\_Detection field should not determine the AI prediction itself. If the
+Analysis file is selected in the prediction GUI, its role should be limited
+to PRI matching or validation unless the implementation explicitly defines
+another purpose.
+
+\section{Prediction Output}
+A prediction CSV may contain the channel identifier, model score, predicted
+YES/NO label, and optional signal summary statistics. The output column
+names should match the actual implementation.
+
+\projectfigure{prediction_gui.png}{Insert a full-window screenshot of the AI
+prediction GUI. Show the model loading status, Beam file selector, prediction
+control, and results area.}{AI-based Wake Prediction GUI}
+
+\projectfigure{prediction_results.png}{Insert a screenshot of the prediction
+results table and saved prediction CSV using genuine output from a test run.}
+{Channel-wise model prediction output}
+
+\chapter{Software Tools and Technologies}
+\begin{longtable}{p{0.27\textwidth}p{0.63\textwidth}}
+\toprule
+\textbf{Tool / Technology} & \textbf{Role in the project}\\
+\midrule
+Python & Main programming language for data processing, model development,
+and GUI application logic.\\
+PySide6 & Qt-based Python framework used to develop the Windows desktop
+interfaces.\\
+Pandas & Reading, selecting, matching, and writing CSV data.\\
+NumPy & Numerical arrays and signal-data transformations.\\
+SciPy & Signal-processing operations, including spectrogram generation
+where used.\\
+TensorFlow & Deep-learning framework used for model training and inference.\\
+Keras & High-level API used to define, compile, train, save, and load the
+EfficientNet-based model.\\
+EfficientNet-B0 & CNN architecture used to extract features from spectrogram
+image inputs.\\
+Matplotlib & Plotting training history and evaluation figures, if used.\\
+Scikit-learn & Dataset splitting and evaluation metrics, where used.\\
+PyInstaller & Packaging the Python GUI and required resources for Windows
+deployment.\\
+Jupyter Notebook & Interactive environment for running and documenting the
+model-training workflow.\\
+\bottomrule
+\end{longtable}
+
+\projectfigure{tools_screenshots.png}{Insert screenshots of the development
+environment, notebook, Python environment, and relevant tools.}
+{Development tools and software environment}
+
+\chapter{Testing and Evaluation}
+\section{Functional Testing}
+Functional testing should verify:
+\begin{itemize}[leftmargin=*]
+\item The GUI accepts valid Beam and PRI Analysis CSV files.
+\item The PRI identifier is extracted and matched correctly.
+\item I-channel extraction follows the actual column layout.
+\item The first valid I-channel observation is preserved.
+\item The rule-based output contains the expected channel labels.
+\item The prediction GUI loads the saved model successfully.
+\item Inference uses the same preprocessing as training.
+\item Prediction output is saved to the selected location.
+\item Invalid or mismatched files produce a clear error message.
+\end{itemize}
+
+\section{Model Evaluation}
+The final report should present metrics computed on an independent test
+set. Accuracy, precision, recall, F1-score, and confusion matrix are
+recommended. Where appropriate, results should also be reported per
+channel. Any performance values inserted into this chapter must come from
+the actual final evaluation run.
+
+\section{Limitations}
+Model reliability depends on the quality and quantity of labelled data,
+the correctness of the Wake\_Detection interpretation, preprocessing
+consistency, and the representativeness of the training data. A
+spectrogram-based image classifier may not preserve all aspects of the
+original raw signal. Predictions must be validated against independent
+labelled recordings before being used as evidence of operational detection
+performance.
+
+\chapter{Windows Packaging and Deployment}
+\section{Packaging}
+The prediction GUI can be packaged using PyInstaller. The deployment
+package must include the GUI application, required runtime libraries,
+the trained model, and any preprocessing configuration files needed
+at inference time.
+
+A directory-based PyInstaller build contains an executable and supporting
+files. The complete generated application directory must be transferred;
+copying only the executable may prevent the application from starting.
+
+\section{Running on Another Windows Computer}
+\begin{enumerate}[leftmargin=*]
+\item Build and test the application on the development computer.
+\item Locate the generated application directory.
+\item Copy the complete directory, including its internal dependency
+folder and model resources.
+\item Transfer it to a compatible Windows computer using an approved
+transfer method.
+\item Run the application executable and test it with a suitable Beam
+input file.
+\end{enumerate}
+A separate Python installation is generally not required on the target
+computer when the application has been packaged correctly. The final
+package should nevertheless be tested on the intended Windows environment.
+
+\projectfigure{packaged_application.png}{Insert a screenshot of the final
+PyInstaller distribution folder showing the EXE and supporting directory,
+or the application running on the target Windows computer.}
+{Packaged Windows application}
+
+\chapter{Conclusion and Future Work}
+\section{Conclusion}
+This project develops a structured workflow for sonar ship-wake data
+processing and channel-wise prediction. The rule-based PySide6 GUI provides
+file selection, PRI association, application of the specified labelling
+rules, and generation of labelled output. The deep-learning workflow
+prepares channel signal data, generates spectrogram representations, and
+trains an EfficientNet-B0-based binary classification model using
+TensorFlow and Keras. A separate prediction GUI can load the saved model
+and apply it to new Beam data.
+
+The project combines desktop application development, CSV data handling,
+signal preprocessing, supervised learning, model saving, inference, and
+Windows packaging. The final reliability of the prediction component must
+be established through independent testing and verification of the
+channel-label mapping.
+
+\section{Future Work}
+\begin{itemize}[leftmargin=*]
+\item Verify the hexadecimal Wake\_Detection bit mapping using authoritative
+dataset documentation and known labelled examples.
+\item Expand and diversify the labelled training dataset.
+\item Introduce recording-wise or acquisition-wise validation and testing
+to avoid data leakage.
+\item Compare EfficientNet-B0 with signal-native one-dimensional CNN
+architectures and other suitable models.
+\item Investigate class imbalance, threshold selection, and per-channel
+performance.
+\item Improve preprocessing for variable-length signal sequences while
+preserving all valid observations.
+\item Add model version information and preprocessing metadata to the
+deployed application.
+\item Conduct further testing on independent sonar recordings.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{efficientnet}
+M. Tan and Q. V. Le, ``EfficientNet: Rethinking Model Scaling for
+Convolutional Neural Networks,'' in \textit{Proceedings of the
+International Conference on Machine Learning}, 2019.
+
+\bibitem{tensorflow}
+TensorFlow, ``TensorFlow Documentation.''
+Available: \url{https://www.tensorflow.org/}
+
+\bibitem{keras}
+Keras, ``Keras Documentation.''
+Available: \url{https://keras.io/}
+
+\bibitem{scipy}
+SciPy, ``SciPy Signal Processing Documentation.''
+Available: \url{https://docs.scipy.org/doc/scipy/reference/signal.html}
+
+\bibitem{pyside}
+Qt for Python, ``PySide6 Documentation.''
+Available: \url{https://doc.qt.io/qtforpython/}
+
+\bibitem{pyinstaller}
+PyInstaller, ``PyInstaller Manual.''
+Available: \url{https://pyinstaller.org/}
+\end{thebibliography}
+\end{document}
